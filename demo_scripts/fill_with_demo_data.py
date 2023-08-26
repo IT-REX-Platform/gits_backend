@@ -246,21 +246,57 @@ mediaRes = client.execute(query, variable_values=params)
 query = gql(
     """
     mutation ($assessmentId: UUID!) {
-        flashcardSet: createFlashcardSet(input: {
+        flashcardSet: createFlashcardSet(
             assessmentId: $assessmentId,
+            input: {
             flashcards: [
                 { sides: [
-                    { label: "Question", text: "What is a *string*?", isQuestion: true },
-                    { label: "Answer", text: "A sequence of text characters.", isQuestion: false }
+                    { 
+                        label: "Question",
+                        text: {text: "What is a *string*?"},
+                        isQuestion: true,
+                        isAnswer: false
+                    },
+                    { 
+                        label: "Answer",
+                        text: {text: "A sequence of text characters."},
+                        isQuestion: false,
+                        isAnswer: true
+                    }
                 ] },
                 { sides: [
-                    { label: "Question", text: "What is a *char*?", isQuestion: true },
-                    { label: "Answer", text: "A single text character.", isQuestion: false }
+                    { 
+                        label: "Question", 
+                        text: {text: "What is a *char*?"}, 
+                        isQuestion: true,
+                        isAnswer: false
+                    },
+                    {
+                        label: "Answer",
+                        text: {text: "A single text character."},
+                        isQuestion: false,
+                        isAnswer: true
+                    }
                 ] },
                 { sides: [
-                    { label: "Question", text: "In Java and C#, the *static* keyword has different meanings when used on classes. What are they?", isQuestion: true },
-                    { label: "Static Classes in C#", text: "In C#, a static class is a class whose members are also all defined as static.", isQuestion: false },
-                    { label: "Static Classes in Java", text: "In Java, only nested classes can be declared static. A static nested class can be instantiated without an instance of the outer class.", isQuestion: false }
+                    {
+                        label: "Question",
+                        text: {text: "In Java and C#, the *static* keyword has different meanings when used on classes. What are they?"},
+                        isQuestion: true,
+                        isAnswer: false
+                    },
+                    {
+                        label: "Static Classes in C#",
+                        text: {text: "In C#, a static class is a class whose members are also all defined as static."},
+                        isQuestion: false,
+                        isAnswer: true
+                    },
+                    {
+                        label: "Static Classes in Java",
+                        text: {text: "In Java, only nested classes can be declared static. A static nested class can be instantiated without an instance of the outer class."},
+                        isQuestion: false,
+                        isAnswer: true
+                    }
                 ] }
             ]
         }) { assessmentId }
@@ -271,3 +307,58 @@ params = {
     "assessmentId": contentRes["chapter1Flashcards"]["id"]
 }
 flashcardsRes = client.execute(query, variable_values=params)
+
+# create quiz
+query = gql(
+    """
+    mutation ($chapterId: UUID!) {
+        createQuizAssessment(
+          assessmentInput: {
+            metadata: {
+              name: "TestQuiz",
+              type: QUIZ,
+              suggestedDate: "2023-06-10T12:39:12.365Z",
+              rewardPoints: 1,
+              tagNames: []
+          		chapterId: $chapterId
+            }
+            assessmentMetadata: {
+              skillPoints: 1,
+              skillType: REMEMBER,
+              initialLearningInterval: 1
+            }
+          },
+          quizInput: {
+            requiredCorrectAnswers: 1,
+            questionPoolingMode: RANDOM,
+            numberOfRandomlySelectedQuestions: 1,
+            multipleChoiceQuestions: [
+              {
+                number: 1
+                text: "What is German food"
+              	hint: "Are you stupid?"
+                answers: [
+                  {
+                    text: "Brot",
+                    correct: true,
+                    feedback: "Good"
+                  },
+                  {
+                    text: "Curry"
+                    correct: false
+                    feedback: "Aber ganz sicher nicht"
+                  }
+                ]
+              }
+            ]
+          }
+        ) {
+          id
+        }
+    }
+    """
+)
+params = {
+    "chapterId": pseChapterRes["chapter1"]["id"]
+}
+quizRes = client.execute(query, variable_values=params)
